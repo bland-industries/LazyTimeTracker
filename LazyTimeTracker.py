@@ -6,6 +6,10 @@ class DisplayLazyTimeTrackerCommand(sublime_plugin.TextCommand):
         ProjectShift.displayTimeTracking(edit)
 
 
+class PreExitCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        1+1 # need to have something here.
+
 class ProjectShift:
     def __init__(self, view):
         self.projectName = view.settings().get('ProjectTitle', view.file_name())
@@ -232,8 +236,6 @@ class ProjectShift:
 
 
 
-
-
 class LazyTimeTrackingEventHandler(sublime_plugin.EventListener):
 
     def __init__(self):
@@ -251,6 +253,14 @@ class LazyTimeTrackingEventHandler(sublime_plugin.EventListener):
                 if self.shiftTracker.checkShift(window.active_view()):
                     self.shiftTracker.closeShift()
                     self.shiftTracker = None
+
+        if (command_name == 'pre_exit'):
+            print("pre exit listener")
+            if self.shiftTracker is not None:
+                if self.shiftTracker.checkShift(window.active_view()):
+                    self.shiftTracker.closeShift()
+                    self.shiftTracker = None
+            window.run_command('exit')
 
 
     def on_post_save(self, view):
