@@ -132,7 +132,10 @@ class ProjectShift:
 
     def formatOutputLong(self):
         string = "\n"
-        string += "Project: " + self.projectName
+        if self.projectName is None:
+            string += "Project: " + "Misc"
+        else:
+            string += "Project: " + self.projectName
         string += " - Time: " + str(self.elapsedTime)
         string += " - Date: " + self.lastSave.strftime("%m/%d/%Y")
         string += "\n"
