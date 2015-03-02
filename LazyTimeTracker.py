@@ -18,7 +18,7 @@ class PreExitCommand(sublime_plugin.WindowCommand):
             lazyTrackerGlobal.closeShift()
             lazyTrackerGlobal = None
             print("pre exit complete")
-        # window.run_command('exit')
+        self.window.run_command('exit')
 
 class PreWindowCloseCommand(sublime_plugin.WindowCommand):
     def run(self):
@@ -29,7 +29,7 @@ class PreWindowCloseCommand(sublime_plugin.WindowCommand):
                 lazyTrackerGlobal.closeShift()
                 lazyTrackerGlobal = None
                 print("pre window close complete")
-        # self.window.run_command('close_window')
+        self.window.run_command('close_window')
 
 
 class ProjectShift:
@@ -268,21 +268,6 @@ class LazyTimeTrackingEventHandler(sublime_plugin.EventListener):
         print("Activated: " + view.settings().get('ProjectTitle', "None"))
 
 
-    def on_window_command(self, window, command_name, args):
-        proj = window.active_view().settings().get('ProjectTitle', "None")
-        if (command_name == "close_window"):
-            if self.shiftTracker is not None:
-                if self.shiftTracker.checkShift(window.active_view()):
-                    self.shiftTracker.closeShift()
-                    self.shiftTracker = None
-
-        if (command_name == 'pre_exit'):
-            print("pre exit listener")
-            if self.shiftTracker is not None:
-                if self.shiftTracker.checkShift(window.active_view()):
-                    self.shiftTracker.closeShift()
-                    self.shiftTracker = None
-            window.run_command('exit')
 
 
 
