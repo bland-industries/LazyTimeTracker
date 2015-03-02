@@ -1,0 +1,4 @@
+[
+    {"keys": ["super+shift+w"], "command": "pre_window_close"},
+    {"keys": ["super+q"], "command": "pre_exit"}
+]

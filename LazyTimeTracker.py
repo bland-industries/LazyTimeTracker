@@ -1,5 +1,8 @@
 import sublime, sublime_plugin, time, datetime, random, os, json 
 
+global lazyTrackerGlobal
+lazyTrackerGlobal = None
+
 # view.run_command('display_lazy_time_tracker')
 class DisplayLazyTimeTrackerCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -8,7 +11,26 @@ class DisplayLazyTimeTrackerCommand(sublime_plugin.TextCommand):
 
 class PreExitCommand(sublime_plugin.WindowCommand):
     def run(self):
-        1+1 # need to have something here.
+        global lazyTrackerGlobal
+        print("pre exit")
+        # proj = self.window.active_view().settings().get('ProjectTitle', "None")
+        if lazyTrackerGlobal is not None:
+            lazyTrackerGlobal.closeShift()
+            lazyTrackerGlobal = None
+            print("pre exit complete")
+        # window.run_command('exit')
+
+class PreWindowCloseCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        global lazyTrackerGlobal
+        print("pre window close")
+        if lazyTrackerGlobal is not None:
+            if lazyTrackerGlobal.checkShift(self.window.active_view()):
+                lazyTrackerGlobal.closeShift()
+                lazyTrackerGlobal = None
+                print("pre window close complete")
+        # self.window.run_command('close_window')
+
 
 class ProjectShift:
     def __init__(self, view):
@@ -172,7 +194,6 @@ class ProjectShift:
 
 
 
-
     def printToFile(self, text):
         with open(ProjectShift.getLogFilePath() + ".txt", "a") as myfile:
             myfile.write(text)
@@ -216,7 +237,6 @@ class ProjectShift:
         else:
             self.lastSave = datetime.datetime.now()
             return True
-
     # return true if the shift is the same
     # return false if the shift has changed
     def checkShift(self, view):
@@ -239,7 +259,9 @@ class ProjectShift:
 class LazyTimeTrackingEventHandler(sublime_plugin.EventListener):
 
     def __init__(self):
-        self.shiftTracker = None
+        global lazyTrackerGlobal
+
+        lazyTrackerGlobal = None
 
 
     def on_activated_async(self, view):
@@ -263,20 +285,22 @@ class LazyTimeTrackingEventHandler(sublime_plugin.EventListener):
             window.run_command('exit')
 
 
-    def on_post_save(self, view):
-        if int(sublime.version()) > 3000:
-            print("version 3")
 
+
+    def on_post_save(self, view):
+        if int(sublime.version()) >= 2000 and int(sublime.version()) < 3000:
+            self.logShiftSave(view)
 
     def on_post_save_async(self, view):
         self.logShiftSave(view)
 
 
     def logShiftSave(self, view):
-        if self.shiftTracker is None:
-            self.shiftTracker = ProjectShift(view)
+        global lazyTrackerGlobal
+        if lazyTrackerGlobal is None:
+            lazyTrackerGlobal = ProjectShift(view)
         else:
-            if not self.shiftTracker.checkShift(view):
-                self.shiftTracker.closeShift()
-                self.shiftTracker = ProjectShift(view)
+            if not lazyTrackerGlobal.checkShift(view):
+                lazyTrackerGlobal.closeShift()
+                lazyTrackerGlobal = ProjectShift(view)
 
