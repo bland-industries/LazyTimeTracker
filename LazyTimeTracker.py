@@ -91,6 +91,7 @@ class ProjectShift:
         for shift in data:
             if currentDate != shift['Date']:
                 string += "\n\n" + shift['Date'] + "\n\n"
+                currentDate = shift['Date']
 
             string += shift['ProjectName'] + " - Time: " + shift['Time'] + "\n"
             if "FirstSave" in shift:
@@ -160,6 +161,8 @@ class ProjectShift:
         string += " - Time: " + str(self.elapsedTime)
         string += " - Date: " + self.lastSave.strftime("%m/%d/%Y")
         string += "\n"
+        string += "  * FirstSave: " + str(self.startTime) + "\n"
+        string += "  * LastSave: " + str(self.lastSave) + "\n"
         for f in self.savedFiles:
             string += "\t- " + f + "\n"
         string += "\n"
