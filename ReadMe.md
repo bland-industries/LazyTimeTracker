@@ -1,4 +1,4 @@
-#Lazy Time Tracker *Beta*
+#Lazy Time Tracker **Beta v0.5.2**
 Sublime Text Time Tracker for the lazy in us all
 
 This is a beta. I am not resposible for the loss of tracking your time. I currently am using is so I am very interested in making it the best ever.
