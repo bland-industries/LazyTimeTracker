@@ -12,23 +12,18 @@ class DisplayLazyTimeTrackerCommand(sublime_plugin.TextCommand):
 class PreExitCommand(sublime_plugin.WindowCommand):
     def run(self):
         global lazyTrackerGlobal
-        print("pre exit")
-        # proj = self.window.active_view().settings().get('ProjectTitle', "None")
         if lazyTrackerGlobal is not None:
             lazyTrackerGlobal.closeShift()
             lazyTrackerGlobal = None
-            print("pre exit complete")
         self.window.run_command('exit')
 
 class PreWindowCloseCommand(sublime_plugin.WindowCommand):
     def run(self):
         global lazyTrackerGlobal
-        print("pre window close")
         if lazyTrackerGlobal is not None:
             if lazyTrackerGlobal.checkShift(self.window.active_view()):
                 lazyTrackerGlobal.closeShift()
                 lazyTrackerGlobal = None
-                print("pre window close complete")
         self.window.run_command('close_window')
 
 
@@ -210,7 +205,7 @@ class ProjectShift:
         else:
             text = ",\n" + text + "\n]"
         
-            file = open(ProjectShift.getLogFilePath() + ".json", "r+", encoding = "utf-8")
+            file = open(ProjectShift.getLogFilePath() + ".json", "r+")
 
             file.seek(0, os.SEEK_END)
             pos = file.tell() - 1
