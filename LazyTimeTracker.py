@@ -262,8 +262,6 @@ class LazyTimeTrackingEventHandler(sublime_plugin.EventListener):
         lazyTrackerGlobal = None
 
 
-    def on_activated_async(self, view):
-        print("Activated: " + view.settings().get('ProjectTitle', "None"))
 
 
 
