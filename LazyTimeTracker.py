@@ -1,14 +1,17 @@
 import sublime, sublime_plugin, time, datetime, random, os, json 
+from datetime import timedelta
 
 global lazyTrackerGlobal
 lazyTrackerGlobal = None
 
-# view.run_command('display_lazy_time_tracker')
+# Command to display the logging.
+# to run command: view.run_command('display_lazy_time_tracker')
 class DisplayLazyTimeTrackerCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         ProjectShift.displayTimeTracking(edit)
 
 
+# Command to allow for Lazy Time Tracker to clean up before user quits
 class PreExitCommand(sublime_plugin.WindowCommand):
     def run(self):
         global lazyTrackerGlobal
@@ -17,6 +20,8 @@ class PreExitCommand(sublime_plugin.WindowCommand):
             lazyTrackerGlobal = None
         self.window.run_command('exit')
 
+
+# Command to allow for Lazy Time Tracker to clean up before user closes the project window
 class PreWindowCloseCommand(sublime_plugin.WindowCommand):
     def run(self):
         global lazyTrackerGlobal
@@ -26,7 +31,7 @@ class PreWindowCloseCommand(sublime_plugin.WindowCommand):
                 lazyTrackerGlobal = None
         self.window.run_command('close_window')
 
-
+# Class to handle all the project details
 class ProjectShift:
     def __init__(self, view):
         self.projectName = view.settings().get('ProjectTitle', view.file_name())
@@ -79,9 +84,23 @@ class ProjectShift:
         view.set_scratch(True)
         view.set_name("Lazy Tracker")
 
-        text = ProjectShift.formatOutputDisplay(data)
+        text = ProjectShift.condensedOutputDisplay(data)
 
         view.insert(edit, 0, text)
+
+
+    @staticmethod
+    def timedeltaFromString(string):
+        parts = string.split(":")
+        return datetime.timedelta(hours=int(parts[0]), minutes=int(parts[1]), seconds=float(parts[2]))
+
+    @staticmethod
+    def totalTime(data):
+        totalTime = timedelta(days=0)
+        for shift in data:
+            totalTime += ProjectShift.timedeltaFromString(shift['Time'])
+        print(totalTime)
+        
 
     @staticmethod
     def formatOutputDisplay(data):
@@ -99,6 +118,46 @@ class ProjectShift:
             for f in shift['FilesSaved']:
                 string += "    - " + f + "\n"
             string += "\n\n"
+
+        return string
+
+
+    @staticmethod
+    def condensedOutputDisplay(data):
+        projects = []
+
+        currentDate = data[0]['Date']
+        dateData = {'Date': currentDate, 'Projects': {}, 'DateTime': timedelta(days=0)}
+        for shift in data:
+            if currentDate != shift['Date']:
+                projects.append(dateData)
+                currentDate = shift['Date']
+                dateData = {'Date': currentDate, 'Projects': {}, 'DateTime': timedelta(days=0)}
+
+            dateData['DateTime'] += ProjectShift.timedeltaFromString(shift['Time'])
+
+            if shift['ProjectName'] in dateData['Projects']:
+                print("yes")
+                dateData['Projects'][shift['ProjectName']]['ProjectTime'] += ProjectShift.timedeltaFromString(shift['Time'])
+            else:
+                print("no")
+                dateData['Projects'][shift['ProjectName']] = {'ProjectTime': ProjectShift.timedeltaFromString(shift['Time']), 'projectFilesString': ""}
+            
+            if "FirstSave" in shift:
+                dateData['Projects'][shift['ProjectName']]['projectFilesString'] += "  * From: " + shift['FirstSave'] + "  To: " + shift["LastSave"] + "\n"
+            # for f in shift['FilesSaved']:
+            #     dateData['Projects'][shift['ProjectName']]['projectFilesString'] += "    - " + f + "\n"
+
+        projects.append(dateData)
+
+        string = ""
+
+        for day in projects:
+            string +="\n\n" + day['Date'] + " -Time: " + str(day['DateTime']) + "\n\n"
+            for key in day['Projects']:
+                string += key + " - Time: " + str(day['Projects'][key]['ProjectTime']) + "\n"
+                string += day['Projects'][key]['projectFilesString']
+                string += "\n"
 
         return string
 
