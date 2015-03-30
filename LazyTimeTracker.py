@@ -6,9 +6,34 @@ lazyTrackerGlobal = None
 
 # Command to display the logging.
 # to run command: view.run_command('display_lazy_time_tracker')
-class DisplayLazyTimeTrackerCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        ProjectShift.displayTimeTracking(edit)
+class DisplayLazyTimeTrackerCommand(sublime_plugin.WindowCommand):
+
+    def run(self):
+        logFolderPath = ProjectShift.getSetting('log_folder')
+
+        self.options = []
+
+        for (dirpath, dirnames, filenames) in os.walk(logFolderPath):
+            for name in filenames:
+                opt = name.replace(logFileName + "--", "")
+                opt = opt.replace('.txt', "")
+                opt = opt.replace('.json', "")
+                if opt not in self.options:
+                    self.options.append(opt)
+            break
+        sublime.active_window().show_quick_panel(self.options[::-1], self.itemChosen)
+
+
+    def itemChosen(self, item):
+        print('chosen')
+        print(self.options[item])
+        self.window.active_view().run_command("display_dated_time_tracker",{ "date" : self.options[item]});
+
+class DisplayDatedTimeTrackerCommand(sublime_plugin.TextCommand):
+    def run(self, edit, date):
+        print(date)
+        ProjectShift.displayTimeTracking(date, edit)
+
 
 
 # Command to allow for Lazy Time Tracker to clean up before user quits
@@ -50,34 +75,34 @@ class ProjectShift:
         return ProjectShift.getSettings().get(setting)
 
     @staticmethod
-    def displayTimeTracking(edit):
+    def displayTimeTracking(date, edit):
         outputFormat = ProjectShift.getSetting('log_file_format')
         if isinstance(outputFormat, list):
             for item in outputFormat:
                 if item == "json":
-                    ProjectShift.displayTimeTrackingJSON(edit)
+                    ProjectShift.displayTimeTrackingJSON(date, edit)
                 elif item == "txt":
-                    ProjectShift.displayTimeTrackingTXT()
+                    ProjectShift.displayTimeTrackingTXT(date)
                 else:
                     print("You need to open the package settings and add a 'log_file_format'.")
         else:
             if outputFormat == "json":
-                ProjectShift.displayTimeTrackingJSON(edit)
+                ProjectShift.displayTimeTrackingJSON(date, edit)
             elif outputFormat == "txt":
-                ProjectShift.displayTimeTrackingTXT()
+                ProjectShift.displayTimeTrackingTXT(date)
             else:
                 print("You need to open the package settings and add a 'log_file_format'.")
 
 
     @staticmethod
-    def displayTimeTrackingTXT():
-        sublime.active_window().open_file(ProjectShift.getLogFilePath() + ".txt")
+    def displayTimeTrackingTXT(date):
+        sublime.active_window().open_file(ProjectShift.getLogFilePath(date) + ".txt")
         
 
     @staticmethod
-    def displayTimeTrackingJSON(edit):
+    def displayTimeTrackingJSON(date, edit):
         
-        json_data=open(ProjectShift.getLogFilePath() +".json")
+        json_data=open(ProjectShift.getLogFilePath(date) +".json")
         data = json.load(json_data)
 
         view = sublime.active_window().new_file()
@@ -93,14 +118,7 @@ class ProjectShift:
     def timedeltaFromString(string):
         parts = string.split(":")
         return datetime.timedelta(hours=int(parts[0]), minutes=int(parts[1]), seconds=float(parts[2]))
-
-    @staticmethod
-    def totalTime(data):
-        totalTime = timedelta(days=0)
-        for shift in data:
-            totalTime += ProjectShift.timedeltaFromString(shift['Time'])
-        print(totalTime)
-        
+                
 
     @staticmethod
     def formatOutputDisplay(data):
@@ -163,8 +181,11 @@ class ProjectShift:
 
 
     @staticmethod
-    def getLogFilePath():
-        logFileName = ProjectShift.getSetting('log_file_name')
+    def getLogFilePath(dateString=None):
+        if dateString is None:
+            today = datetime.datetime.now()
+            dateString = str(today.year) + "-" + today.strftime('%m')
+        logFileName = ProjectShift.getSetting('log_file_name') + "--" + dateString
         logFolderPath = ProjectShift.getSetting('log_folder')
         if logFolderPath is False:
             logFolderPath = os.path.expanduser('~') + "/"
@@ -258,7 +279,8 @@ class ProjectShift:
 
 
     def printToFileJSON(self, text):
-
+        print('printing json')
+        print(ProjectShift.getLogFilePath())
         if not os.path.isfile(ProjectShift.getLogFilePath() + ".json"):
             text = "[\n" + text + "\n]"
             with open(ProjectShift.getLogFilePath() + ".json", "a") as myfile:
@@ -297,6 +319,7 @@ class ProjectShift:
     # return true if the shift is the same
     # return false if the shift has changed
     def checkShift(self, view):
+        print('chekcing')
         ret = False
         project = view.settings().get('ProjectTitle', view.file_name())
         if (project == self.projectName):
@@ -333,6 +356,7 @@ class LazyTimeTrackingEventHandler(sublime_plugin.EventListener):
 
     def on_post_save_async(self, view):
         self.logShiftSave(view)
+        print('saving')
 
 
     def logShiftSave(self, view):
