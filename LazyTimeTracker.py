@@ -1,5 +1,4 @@
 import sublime, sublime_plugin, time, datetime, random, os, json 
-from datetime import timedelta
 
 global lazyTrackerGlobal
 lazyTrackerGlobal = None
@@ -10,6 +9,7 @@ class DisplayLazyTimeTrackerCommand(sublime_plugin.WindowCommand):
 
     def run(self):
         logFolderPath = ProjectShift.getSetting('log_folder')
+        logFileName = ProjectShift.getSetting('log_file_name')
 
         self.options = []
 
@@ -117,8 +117,7 @@ class ProjectShift:
     @staticmethod
     def timedeltaFromString(string):
         parts = string.split(":")
-        return datetime.timedelta(hours=int(parts[0]), minutes=int(parts[1]), seconds=float(parts[2]))
-                
+        return datetime.timedelta(hours=int(parts[0]), minutes=int(parts[1]), seconds=float(parts[2]))                
 
     @staticmethod
     def formatOutputDisplay(data):
@@ -145,12 +144,12 @@ class ProjectShift:
         projects = []
 
         currentDate = data[0]['Date']
-        dateData = {'Date': currentDate, 'Projects': {}, 'DateTime': timedelta(days=0)}
+        dateData = {'Date': currentDate, 'Projects': {}, 'DateTime': datetime.timedelta(days=0)}
         for shift in data:
             if currentDate != shift['Date']:
                 projects.append(dateData)
                 currentDate = shift['Date']
-                dateData = {'Date': currentDate, 'Projects': {}, 'DateTime': timedelta(days=0)}
+                dateData = {'Date': currentDate, 'Projects': {}, 'DateTime': datetime.timedelta(days=0)}
 
             dateData['DateTime'] += ProjectShift.timedeltaFromString(shift['Time'])
 
