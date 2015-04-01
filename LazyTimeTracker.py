@@ -172,9 +172,10 @@ class ProjectShift:
         for day in projects:
             string +="\n\n" + day['Date'] + " -Time: " + str(day['DateTime']) + "\n\n"
             for key in day['Projects']:
-                string += key + " - Time: " + str(day['Projects'][key]['ProjectTime']) + "\n"
-                string += day['Projects'][key]['projectFilesString']
-                string += "\n"
+                if key is not None:
+                    string += key + " - Time: " + str(day['Projects'][key]['ProjectTime']) + "\n"
+                    string += day['Projects'][key]['projectFilesString']
+                    string += "\n"
 
         return string
 
@@ -243,7 +244,8 @@ class ProjectShift:
         string += "  * FirstSave: " + str(self.startTime) + "\n"
         string += "  * LastSave: " + str(self.lastSave) + "\n"
         for f in self.savedFiles:
-            string += "\t- " + f + "\n"
+            if f is not None:
+                string += "\t- " + f + "\n"
         string += "\n"
 
         return string
@@ -355,6 +357,11 @@ class LazyTimeTrackingEventHandler(sublime_plugin.EventListener):
 
     def on_post_save_async(self, view):
         self.logShiftSave(view)
+
+        
+
+
+        
         print('saving')
 
 
