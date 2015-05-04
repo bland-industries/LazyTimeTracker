@@ -3,8 +3,14 @@ import sublime, sublime_plugin, time, datetime, random, os, json
 global lazyTrackerGlobal
 lazyTrackerGlobal = None
 
-# Command to display the logging.
-# to run command: view.run_command('display_lazy_time_tracker')
+"""
+Command to display the logging.
+
+Displays a pop up for all the months you have in your tracking folder.
+once selected it displays the information for that month.
+
+to run command: view.run_command('display_lazy_time_tracker')
+"""
 class DisplayLazyTimeTrackerCommand(sublime_plugin.WindowCommand):
 
     def run(self):
@@ -13,6 +19,7 @@ class DisplayLazyTimeTrackerCommand(sublime_plugin.WindowCommand):
 
         self.options = []
 
+        # finds each file that was saved for each month.
         for (dirpath, dirnames, filenames) in os.walk(logFolderPath):
             for name in filenames:
                 opt = name.replace(logFileName + "--", "")
@@ -21,17 +28,17 @@ class DisplayLazyTimeTrackerCommand(sublime_plugin.WindowCommand):
                 if opt not in self.options:
                     self.options.append(opt)
             break
-        sublime.active_window().show_quick_panel(self.options[::-1], self.itemChosen)
+        self.options = self.options[::-1]
+        sublime.active_window().show_quick_panel(self.options, self.itemChosen)
 
 
     def itemChosen(self, item):
-        print('chosen')
-        print(self.options[item])
         self.window.active_view().run_command("display_dated_time_tracker",{ "date" : self.options[item]});
+
+
 
 class DisplayDatedTimeTrackerCommand(sublime_plugin.TextCommand):
     def run(self, edit, date):
-        print(date)
         ProjectShift.displayTimeTracking(date, edit)
 
 
@@ -46,6 +53,7 @@ class PreExitCommand(sublime_plugin.WindowCommand):
         self.window.run_command('exit')
 
 
+
 # Command to allow for Lazy Time Tracker to clean up before user closes the project window
 class PreWindowCloseCommand(sublime_plugin.WindowCommand):
     def run(self):
@@ -55,6 +63,8 @@ class PreWindowCloseCommand(sublime_plugin.WindowCommand):
                 lazyTrackerGlobal.closeShift()
                 lazyTrackerGlobal = None
         self.window.run_command('close_window')
+
+
 
 # Class to handle all the project details
 class ProjectShift:
@@ -66,10 +76,13 @@ class ProjectShift:
         self.lastSave = self.startTime;
         self.elapsedTime = 0
 
+    # Get the settings object for this package
     @staticmethod
     def getSettings():
         return sublime.load_settings("LazyTimeTracker.sublime-settings")
 
+
+    # Get a single setting base for this package
     @staticmethod
     def getSetting(setting):
         return ProjectShift.getSettings().get(setting)
@@ -154,16 +167,12 @@ class ProjectShift:
             dateData['DateTime'] += ProjectShift.timedeltaFromString(shift['Time'])
 
             if shift['ProjectName'] in dateData['Projects']:
-                print("yes")
                 dateData['Projects'][shift['ProjectName']]['ProjectTime'] += ProjectShift.timedeltaFromString(shift['Time'])
             else:
-                print("no")
                 dateData['Projects'][shift['ProjectName']] = {'ProjectTime': ProjectShift.timedeltaFromString(shift['Time']), 'projectFilesString': ""}
             
             if "FirstSave" in shift:
                 dateData['Projects'][shift['ProjectName']]['projectFilesString'] += "  * From: " + shift['FirstSave'] + "  To: " + shift["LastSave"] + "\n"
-            # for f in shift['FilesSaved']:
-            #     dateData['Projects'][shift['ProjectName']]['projectFilesString'] += "    - " + f + "\n"
 
         projects.append(dateData)
 
@@ -188,7 +197,7 @@ class ProjectShift:
         logFileName = ProjectShift.getSetting('log_file_name') + "--" + dateString
         logFolderPath = ProjectShift.getSetting('log_folder')
         if logFolderPath is False:
-            logFolderPath = os.path.expanduser('~') + "/"
+            logFolderPath = os.path.expanduser('~') + "/LazyTimeTrackerLogs/"
         return logFolderPath + logFileName
 
 
@@ -228,7 +237,6 @@ class ProjectShift:
 
     def printLogConsole(self):
         text = self.formatOutputLong()
-        print(text)
 
 
 
@@ -280,8 +288,6 @@ class ProjectShift:
 
 
     def printToFileJSON(self, text):
-        print('printing json')
-        print(ProjectShift.getLogFilePath())
         if not os.path.isfile(ProjectShift.getLogFilePath() + ".json"):
             text = "[\n" + text + "\n]"
             with open(ProjectShift.getLogFilePath() + ".json", "a") as myfile:
@@ -317,10 +323,8 @@ class ProjectShift:
         else:
             self.lastSave = datetime.datetime.now()
             return True
-    # return true if the shift is the same
-    # return false if the shift has changed
+
     def checkShift(self, view):
-        print('chekcing')
         ret = False
         project = view.settings().get('ProjectTitle', view.file_name())
         if (project == self.projectName):
@@ -338,18 +342,10 @@ class ProjectShift:
 
 
 class LazyTimeTrackingEventHandler(sublime_plugin.EventListener):
-
     def __init__(self):
         global lazyTrackerGlobal
 
         lazyTrackerGlobal = None
-
-
-
-
-
-
-
 
     def on_post_save(self, view):
         if int(sublime.version()) >= 2000 and int(sublime.version()) < 3000:
@@ -357,13 +353,6 @@ class LazyTimeTrackingEventHandler(sublime_plugin.EventListener):
 
     def on_post_save_async(self, view):
         self.logShiftSave(view)
-
-        
-
-
-        
-        print('saving')
-
 
     def logShiftSave(self, view):
         global lazyTrackerGlobal

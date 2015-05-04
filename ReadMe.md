@@ -1,7 +1,9 @@
-#Lazy Time Tracker **Beta v0.5.2**
+#Lazy Time Tracker **Beta v0.5.0**
 Sublime Text Time Tracker for the lazy in us all
 
-This is a beta. I am not resposible for the loss of tracking your time. I currently am using is so I am very interested in making it the best ever.
+**Note:** This is a beta. I am not resposible for the loss of tracking your time. I currently am using it so I am very interested in making it the best ever.
+
+**Note:** This is currently been tested by me on ST3 and minimally tested on ST2. I have also only tested it on OSX. If there are generous people out there that would like to test things for me, I would greatly appreciate it.
 
 ## How it works
 
@@ -12,6 +14,10 @@ First you will need to set up the settings of the plug in settings. The only one
 
 You will need to set up at least one item in all your projects' `.sublime-project` file. In the settings section of the project file you can add the item `"ProjectTitle"`. The Project Title is the name you want to save the time under. The tracker also lumps all saved actions under the project name so if you want to keep track accross saves of multiple files it does that. What happens if you don't set up the Project Title. It will log all your files seperately and everytime you save a different file it will add a line to the log.
 
+#####In Short:
+* set the folder you want to save the logs into in this packages `.sublime-settings` file.
+* set the name of the project in each project's `.sublime-project` folder.
+
 ## Output
 
 This tracker saves its logs to files. There is no need to sign up to any service or be connected to the internet. It saves to a .txt file or a .json file. It can save to both if you choose. 
@@ -19,30 +25,30 @@ This tracker saves its logs to files. There is no need to sign up to any service
 The output of the txt file looks like this:
 
 ```
-Project: Awesome Project - Time: 0:20:02.062951 - Date: 03/02/2015
-  * FirstSave: 2015-03-02 11:05:33.991104
-  * LastSave: 2015-03-02 11:25:36.054055
-    - awesomeProject/file1.md
-    - awesomeProject/file2.md
+Project: Awesome Project - Time: 6:38:40 - Date: 07/20/1969
+  * FirstSave: 1969-7-10 16:17:40
+  * LastSave: 1969-7-10 22:56:20
+    - awesomeProject/land.md
+    - awesomeProject/step.md
 ```
 
 The output of the json file looks like this (prettied up):
 
 ```
   {
-    "LastSave": "2015-03-02 11:05:36.054055",
+    "LastSave": "1969-7-10 22:56:20",
     "ProjectName": "Awesome Project",
-    "FirstSave": "2015-03-02 11:25:33.991104",
+    "FirstSave": "1969-7-10 16:17:40",
     "FilesSaved": [
-      "awesomeProject/file1.md",
-      "awesomeProject/file2.md"
+      "awesomeProject/land.md",
+      "awesomeProject/step.md"
     ],
-    "Time": "0:20:02.062951",
-    "Date": "03/02/2015"
+    "Time": "6:38:40",
+    "Date": "07/20/1969"
   },
 ```
 
-## View Output
+#### View Output
 
 Obviosly you can open the files and read the log as you would any other file. But for convience there is a built in way to view the log files. 
 
