@@ -197,6 +197,7 @@ class ProjectShift:
         logFileName = ProjectShift.getSetting('log_file_name') + "--" + dateString
         logFolderPath = ProjectShift.getSetting('log_folder')
         if logFolderPath is False:
+            os.makedirs(os.path.expanduser('~') + "/LazyTimeTrackerLogs/", exist_ok=True)
             logFolderPath = os.path.expanduser('~') + "/LazyTimeTrackerLogs/"
         return logFolderPath + logFileName
 
